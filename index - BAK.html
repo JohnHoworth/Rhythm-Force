@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rhythm Force Ultra | DAW Interface</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon-cyan: #00f3ff;
+            --neon-pink: #ff007b;
+            --neon-purple: #9d00ff;
+            --neon-orange: #ff7b00;
+        }
+
+        body {
+            background-color: #050505;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #111 0%, #000 100%),
+                linear-gradient(0deg, transparent 24%, rgba(0, 243, 255, 0.03) 25%, rgba(0, 243, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.03) 75%, rgba(0, 243, 255, 0.03) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 243, 255, 0.03) 25%, rgba(0, 243, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.03) 75%, rgba(0, 243, 255, 0.03) 76%, transparent 77%, transparent);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            color: #e2e8f0;
+            font-family: 'Rajdhani', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .cyber-card {
+            background: rgba(10, 15, 25, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 243, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 243, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .cyber-card:hover {
+            border-color: rgba(0, 243, 255, 0.4);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), inset 0 0 30px rgba(0, 243, 255, 0.1);
+        }
+
+        .glow-cyan { text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan); }
+        .glow-pink { text-shadow: 0 0 10px var(--neon-pink), 0 0 20px var(--neon-pink); }
+        .glow-orange { text-shadow: 0 0 10px var(--neon-orange), 0 0 20px var(--neon-orange); }
+        .glow-purple { text-shadow: 0 0 10px var(--neon-purple), 0 0 20px var(--neon-purple); }
+
+        .btn-pop {
+            transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-pop:active {
+            transform: scale(0.95);
+        }
+
+        /* Glitch Effect */
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        .animate-glitch:hover { animation: glitch 0.3s linear infinite; }
+
+        /* Sequencer Timelines and Wave Animations */
+        @keyframes playheadMove {
+            0% { left: 0%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes revealWave {
+            0% { clip-path: inset(0 100% 0 0); }
+            100% { clip-path: inset(0 0 0 0); }
+        }
+
+        /* Default state is stopped (no animation applied, reset to 0) */
+        .playhead-anim { left: 0%; }
+        .wave-reveal-anim { clip-path: inset(0 100% 0 0); width: 100%; height: 100%; }
+
+        /* Active playing state */
+        .is-playing .playhead-anim { animation: playheadMove 4s linear infinite; }
+        .is-playing .wave-reveal-anim { animation: revealWave 4s linear infinite; }
+
+        .audio-wave {
+            height: 100%;
+            background-image: repeating-linear-gradient(90deg, currentColor, currentColor 2px, transparent 2px, transparent 4px);
+            -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 20%, black 50%, rgba(0,0,0,0.6) 80%, transparent 100%);
+            mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.6) 20%, black 50%, rgba(0,0,0,0.6) 80%, transparent 100%);
+        }
+
+        /* Custom Hover Animations (EQ & Sine Wave) */
+        @keyframes eq-1 { 0%, 100% { height: 30%; } 50% { height: 80%; } }
+        @keyframes eq-2 { 0%, 100% { height: 60%; } 50% { height: 20%; } }
+        @keyframes eq-3 { 0%, 100% { height: 40%; } 50% { height: 90%; } }
+        @keyframes eq-4 { 0%, 100% { height: 80%; } 50% { height: 30%; } }
+        @keyframes eq-5 { 0%, 100% { height: 50%; } 50% { height: 100%; } }
+        @keyframes eq-6 { 0%, 100% { height: 20%; } 50% { height: 70%; } }
+
+        .group:hover .eq-bar-1 { animation: eq-1 0.4s ease-in-out infinite; }
+        .group:hover .eq-bar-2 { animation: eq-2 0.5s ease-in-out infinite; }
+        .group:hover .eq-bar-3 { animation: eq-3 0.3s ease-in-out infinite; }
+        .group:hover .eq-bar-4 { animation: eq-4 0.6s ease-in-out infinite; }
+        .group:hover .eq-bar-5 { animation: eq-5 0.4s ease-in-out infinite; }
+        .group:hover .eq-bar-6 { animation: eq-6 0.5s ease-in-out infinite; }
+
+        @keyframes wave-slide {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .group:hover .wave-slide-anim {
+            animation: wave-slide 1s linear infinite;
+        }
+
+        /* 3D Tilt for Cards */
+        .tilt-wrapper { perspective: 1000px; }
+        .tilt-element { transform-style: preserve-3d; transition: transform 0.1s; }
+
+        /* Knobs & Faders */
+        .knob {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(from 225deg, #1e293b 0%, #334155 50%, #1e293b 100%);
+            border: 2px solid #0f172a; position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.1);
+            cursor: ns-resize; transform: rotate(0deg);
+        }
+        .knob::after {
+            content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+            width: 4px; height: 12px; background: var(--neon-cyan); border-radius: 2px;
+            box-shadow: 0 0 5px var(--neon-cyan);
+        }
+        
+        .dragging { cursor: ns-resize !important; }
+        .dragging-h { cursor: ew-resize !important; }
+
+        /* SPA Pages */
+        .page { display: none; animation: fadeIn 0.4s ease-out forwards; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-full md:w-20 lg:w-64 bg-slate-900/80 border-b md:border-b-0 md:border-r border-cyan-500/20 flex flex-row md:flex-col items-center lg:items-start py-4 lg:py-8 px-4 gap-6 z-50 sticky top-0 md:h-screen shadow-[0_0_30px_rgba(0,0,0,0.8)]">
+        <div class="hidden lg:flex items-center gap-3 mb-8 px-4 cursor-pointer animate-glitch w-full overflow-hidden" onclick="showPage('dashboard')">
+            <i data-lucide="hexagon" class="text-cyan-400 w-8 h-8 flex-shrink-0 drop-shadow-[0_0_8px_#00f3ff]"></i>
+            <h1 class="font-orbitron font-black text-lg xl:text-xl tracking-wide text-white truncate">RHYTHM<span class="text-cyan-400">FORCE</span></h1>
+        </div>
+        <div class="lg:hidden cursor-pointer flex-shrink-0" onclick="showPage('dashboard')">
+            <i data-lucide="hexagon" class="text-cyan-400 w-8 h-8 drop-shadow-[0_0_8px_#00f3ff]"></i>
+        </div>
+
+        <div class="flex flex-row md:flex-col gap-2 w-full overflow-x-auto md:overflow-visible hide-scrollbar">
+            <button onclick="showPage('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 hover:shadow-[inset_4px_0_0_#00f3ff] transition-all group whitespace-nowrap">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#00f3ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">DASHBOARD</span>
+            </button>
+            <button onclick="showPage('sequencer')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 hover:shadow-[inset_4px_0_0_#00f3ff] transition-all group whitespace-nowrap">
+                <i data-lucide="list-music" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#00f3ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">SEQUENCER</span>
+            </button>
+            <button onclick="showPage('mixer')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-orange-500/10 hover:text-orange-400 hover:shadow-[inset_4px_0_0_#ff7b00] transition-all group whitespace-nowrap">
+                <i data-lucide="sliders-horizontal" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#ff7b00]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">BEAT MIXER</span>
+            </button>
+            <button onclick="showPage('designer')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-pink-500/10 hover:text-pink-400 hover:shadow-[inset_4px_0_0_#ff007b] transition-all group whitespace-nowrap">
+                <i data-lucide="waves" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#ff007b]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">SOUND DESIGN</span>
+            </button>
+            <button onclick="showPage('cpu')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 hover:shadow-[inset_4px_0_0_#00f3ff] transition-all group whitespace-nowrap">
+                <i data-lucide="cpu" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#00f3ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">CPU LOAD</span>
+            </button>
+            <button onclick="showPage('community')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-purple-500/10 hover:text-purple-400 hover:shadow-[inset_4px_0_0_#9d00ff] transition-all group whitespace-nowrap">
+                <i data-lucide="globe" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#9d00ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">COMMUNITY</span>
+            </button>
+            <button onclick="showPage('tutorials')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 hover:shadow-[inset_4px_0_0_#00f3ff] transition-all group whitespace-nowrap">
+                <i data-lucide="graduation-cap" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#00f3ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">ACADEMY</span>
+            </button>
+            <button onclick="showPage('contact')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-cyan-500/10 hover:text-cyan-400 hover:shadow-[inset_4px_0_0_#00f3ff] transition-all group whitespace-nowrap mt-4 md:mt-0 border-t md:border-t-0 border-slate-800">
+                <i data-lucide="mail" class="w-5 h-5 group-hover:drop-shadow-[0_0_5px_#00f3ff]"></i>
+                <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">CONTACT HQ</span>
+            </button>
+        </div>
+        
+        <div class="mt-auto hidden lg:block px-4 w-full">
+            <div class="bg-black/40 border border-slate-700 rounded p-3 flex items-center gap-3">
+                <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f3ff] animate-pulse"></div>
+                <div class="text-[10px] xl:text-xs font-orbitron text-slate-300 truncate">AUDIO ENGINE <span class="text-cyan-400 block">ONLINE</span></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow p-4 md:p-8 lg:p-12 overflow-y-auto">
+        
+        <!-- PAGE: DASHBOARD -->
+        <div id="dashboard" class="page active">
+            <header class="mb-10 flex justify-between items-end border-b border-slate-800 pb-4">
+                <div>
+                    <h2 class="font-orbitron text-4xl font-black tracking-widest glow-cyan">INITIATE SEQUENCE</h2>
+                    <p class="text-slate-400 mt-2 font-semibold">Select an operation protocol</p>
+                </div>
+                <div class="font-orbitron text-cyan-400 text-xl tracking-widest hidden sm:block">
+                    v.2.0.4 <span class="text-slate-600">|</span> BLAZAR
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 tilt-wrapper">
+                <div class="tilt-element cyber-card rounded-2xl p-6 flex flex-col cursor-pointer lg:col-span-2 group" onclick="showPage('sequencer')">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-cyan-500/20 rounded-lg border border-cyan-500/50">
+                                <i data-lucide="play-circle" class="text-cyan-400 w-6 h-6 transition-all duration-300 group-hover:scale-110 group-hover:animate-pulse group-hover:drop-shadow-[0_0_10px_#00f3ff]"></i>
+                            </div>
+                            <h3 class="font-orbitron font-bold text-xl text-white group-hover:text-cyan-400 transition-colors">RHYTHM DAWN</h3>
+                        </div>
+                        <span class="bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded text-xs font-orbitron font-bold border border-cyan-500/30">ACTIVE</span>
+                    </div>
+                    
+                    <p class="text-slate-400 text-sm mb-6">Multi-track quantum sequencer. Load your stems and manipulate time.</p>
+                    
+                    <div class="bg-black/40 rounded-xl p-4 flex-grow border border-slate-800 is-playing">
+                        <div class="relative w-full h-full min-h-[100px] overflow-hidden">
+                            <div class="absolute top-0 bottom-0 w-[2px] bg-cyan-300 shadow-[0_0_15px_#00f3ff] z-20 playhead-anim"></div>
+                            <div class="space-y-4 h-full flex flex-col justify-center">
+                                <div class="h-6 relative w-full border-b border-slate-800/50">
+                                    <div class="absolute inset-0 wave-reveal-anim">
+                                        <div class="h-full w-[80%] text-cyan-400 audio-wave opacity-90"></div>
+                                    </div>
+                                </div>
+                                <div class="h-6 relative w-full border-b border-slate-800/50">
+                                    <div class="absolute inset-0 wave-reveal-anim">
+                                        <div class="h-full w-[60%] ml-[15%] text-pink-400 audio-wave opacity-70"></div>
+                                    </div>
+                                </div>
+                                <div class="h-6 relative w-full border-b border-slate-800/50">
+                                    <div class="absolute inset-0 wave-reveal-anim">
+                                        <div class="h-full w-[90%] text-orange-400 audio-wave opacity-80"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-8 tilt-wrapper">
+                    <div class="tilt-element cyber-card rounded-2xl p-6 flex items-center gap-4 cursor-pointer group" onclick="showPage('mixer')">
+                        <div class="w-16 h-16 rounded-lg border-2 border-orange-500 flex items-center justify-center bg-orange-500/10">
+                            <i data-lucide="disc-3" class="text-orange-400 w-8 h-8 transition-all duration-300 group-hover:animate-[spin_2s_linear_infinite] group-hover:drop-shadow-[0_0_8px_#ff7b00]"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-orbitron font-bold text-orange-400 group-hover:glow-orange transition-all">BEAT MIXER</h3>
+                            <p class="text-xs text-slate-500">Live DJ Interface</p>
+                        </div>
+                    </div>
+
+                    <div class="tilt-element cyber-card rounded-2xl p-6 flex items-center gap-4 cursor-pointer group" onclick="showPage('designer')">
+                        <div class="w-16 h-16 rounded-lg border-2 border-pink-500 flex items-center justify-center bg-pink-500/10 overflow-hidden relative">
+                            <!-- Sine Wave SVG that slides on hover -->
+                            <svg class="absolute left-0 w-[200%] h-8 text-pink-400 wave-slide-anim transition-colors group-hover:drop-shadow-[0_0_8px_#ff007b]" viewBox="0 0 200 20" preserveAspectRatio="none">
+                                <path d="M0,10 Q12.5,0 25,10 T50,10 T75,10 T100,10 T125,10 T150,10 T175,10 T200,10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-orbitron font-bold text-pink-400 group-hover:glow-pink transition-all">SOUND DESIGN</h3>
+                            <p class="text-xs text-slate-500">Modular FX Routing</p>
+                        </div>
+                    </div>
+
+                    <div class="tilt-element cyber-card rounded-2xl p-6 flex flex-col gap-4 cursor-pointer group" onclick="showPage('cpu')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-orbitron text-xs text-slate-400 tracking-widest group-hover:text-cyan-400 transition-colors">MASTER CPU LOAD</h3>
+                            <i data-lucide="cpu" class="w-4 h-4 text-slate-500 group-hover:text-cyan-400 group-hover:animate-pulse transition-all"></i>
+                        </div>
+                        <!-- Graphic EQ animation added via classes (eq-bar-1 etc) triggered by group:hover -->
+                        <div class="flex items-end gap-1 h-[68px]">
+                            <div class="eq-bar-1 w-1/6 bg-cyan-500/30 h-[30%] rounded-t group-hover:bg-cyan-400 transition-colors duration-300"></div>
+                            <div class="eq-bar-2 w-1/6 bg-cyan-500/50 h-[60%] rounded-t group-hover:bg-cyan-400 transition-colors duration-300"></div>
+                            <div class="eq-bar-3 w-1/6 bg-cyan-500/70 h-[40%] rounded-t group-hover:bg-cyan-400 transition-colors duration-300"></div>
+                            <div class="eq-bar-4 w-1/6 bg-pink-500/80 h-[80%] rounded-t shadow-[0_0_10px_#ff007b] group-hover:bg-pink-400 transition-colors duration-300"></div>
+                            <div class="eq-bar-5 w-1/6 bg-cyan-500/40 h-[50%] rounded-t group-hover:bg-cyan-400 transition-colors duration-300"></div>
+                            <div class="eq-bar-6 w-1/6 bg-cyan-500/20 h-[20%] rounded-t group-hover:bg-cyan-400 transition-colors duration-300"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 cyber-card rounded-2xl p-6 max-w-4xl border-l-4 border-cyan-500 group">
+                <div class="flex items-center gap-4 mb-4">
+                    <i data-lucide="shield-check" class="text-cyan-400 w-6 h-6 transition-all duration-300 group-hover:animate-pulse group-hover:drop-shadow-[0_0_10px_#00f3ff]"></i>
+                    <h3 class="font-orbitron font-bold text-slate-200">SYSTEM SECURE: CLOUD SYNC ACTIVE</h3>
+                </div>
+                <p class="text-sm text-slate-400">Your recent projects have been backed up to the neural net. Collaboration features are online. Access the Academy to review new modular routing techniques added in v.2.0.4.</p>
+                <div class="mt-8 pt-8 border-t border-slate-800 flex justify-between text-[10px] font-orbitron text-slate-600">
+                    <a href="#" class="hover:text-cyan-400 transition-colors">FORGOT KEY</a>
+                    <a href="#" class="hover:text-cyan-400 transition-colors">NEW OPERATOR?</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: SEQUENCER -->
+        <div id="sequencer" class="page">
+            <h2 class="font-orbitron text-4xl font-black mb-8 glow-cyan text-center text-cyan-400">MAIN WORKSPACE</h2>
+            <div class="cyber-card rounded-2xl p-6 h-[600px] flex flex-col border-cyan-500/30">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4 mb-4">
+                    <div class="flex gap-4">
+                        <button id="btn-play" class="btn-pop p-2 bg-cyan-600 rounded text-black transition-shadow hover:bg-cyan-500"><i data-lucide="play" class="w-5 h-5 fill-black"></i></button>
+                        <button id="btn-stop" class="btn-pop p-2 bg-slate-800 rounded text-white hover:bg-slate-700 transition-colors"><i data-lucide="square" class="w-5 h-5 fill-white"></i></button>
+                        <button class="btn-pop p-2 bg-red-900/30 text-red-500 rounded hover:bg-red-900/60 transition"><i data-lucide="circle" class="w-5 h-5 fill-red-500"></i></button>
+                    </div>
+                    <div class="font-orbitron text-2xl text-cyan-400 tracking-widest bg-black/50 px-4 py-1 rounded border border-cyan-500/30">128.00 BPM</div>
+                </div>
+                
+                <div id="sequencer-workspace" class="flex-grow bg-black/60 rounded-lg border border-slate-800 p-6 space-y-6 flex flex-col overflow-x-auto">
+                    <div class="flex w-full h-full gap-6 min-w-[600px]">
+                        <div class="w-24 flex-shrink-0 flex flex-col gap-6 relative z-10 pt-1">
+                            <div class="h-12 flex items-center justify-end text-xs font-orbitron text-slate-400">SYNTH LEAD</div>
+                            <div class="h-12 flex items-center justify-end text-xs font-orbitron text-slate-400">808 BASS</div>
+                            <div class="h-12 flex items-center justify-end text-xs font-orbitron text-slate-400">KICK / SNARE</div>
+                            <div class="h-12 flex items-center justify-end text-xs font-orbitron text-slate-400">ATMOSPHERE</div>
+                        </div>
+
+                        <div class="flex-grow relative flex flex-col gap-6 border-l border-slate-800/80 pl-1 overflow-hidden">
+                            <!-- Playhead line -->
+                            <div class="absolute top-0 bottom-0 w-[2px] bg-cyan-300 shadow-[0_0_20px_#00f3ff] z-20 playhead-anim"></div>
+                            
+                            <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-cyan);">
+                                <div class="absolute inset-0 wave-reveal-anim">
+                                    <div class="audio-wave w-[100%] text-cyan-400"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-pink);">
+                                <div class="absolute inset-0 wave-reveal-anim">
+                                    <div class="audio-wave w-[60%] opacity-60 ml-[20%] text-pink-500"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-orange);">
+                                <div class="absolute inset-0 wave-reveal-anim">
+                                    <div class="audio-wave w-[90%] text-orange-400"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-purple);">
+                                <div class="absolute inset-0 wave-reveal-anim">
+                                    <div class="audio-wave w-[45%] opacity-80 ml-[40%] text-purple-500"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: BEAT MIXER -->
+        <div id="mixer" class="page">
+            <h2 class="font-orbitron text-4xl font-black mb-10 glow-orange text-center text-orange-400">DUAL DECK MIXER</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+                <!-- Deck A -->
+                <div class="cyber-card p-4 sm:p-8 rounded-full aspect-square flex items-center justify-center border-orange-500/50 shadow-[0_0_30px_rgba(255,123,0,0.15)] group">
+                    <div class="w-full h-full rounded-full border-[12px] border-slate-900 flex items-center justify-center animate-[spin_4s_linear_infinite]" style="background: repeating-radial-gradient(#1e293b, #1e293b 10px, #0f172a 10px, #0f172a 20px);">
+                        <div class="w-1/3 h-1/3 bg-orange-500/20 rounded-full border border-orange-500/50 flex items-center justify-center shadow-[0_0_20px_#ff7b00] group-hover:bg-orange-500/40 transition-colors">
+                            <i data-lucide="disc-3" class="text-orange-400 w-12 h-12 group-hover:animate-pulse"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Mixer Center -->
+                <div class="cyber-card p-8 rounded-3xl h-full flex flex-col justify-between border-slate-700 bg-slate-900/60 select-none">
+                    <div class="flex justify-between px-4">
+                        <div class="flex flex-col items-center gap-3"><div class="knob" data-rotation="-45"></div><span class="text-[10px] text-slate-400 font-orbitron">HIGH</span></div>
+                        <div class="flex flex-col items-center gap-3"><div class="knob" data-rotation="20"></div><span class="text-[10px] text-slate-400 font-orbitron">MID</span></div>
+                        <div class="flex flex-col items-center gap-3"><div class="knob" data-rotation="60"></div><span class="text-[10px] text-slate-400 font-orbitron">LOW</span></div>
+                    </div>
+                    <div class="flex-grow flex justify-center py-12 gap-12">
+                        <!-- Volume Fader A -->
+                        <div class="fader-track-v w-2 h-full bg-black rounded-full relative shadow-inner cursor-pointer">
+                            <div class="fader-handle-v absolute -left-4 w-10 h-6 bg-gradient-to-b from-slate-300 to-slate-500 rounded shadow-lg border-b-2 border-slate-800 cursor-ns-resize hover:brightness-110 active:scale-95 transition-[filter,transform]" style="bottom: 70%;"></div>
+                        </div>
+                        <!-- Volume Fader B -->
+                        <div class="fader-track-v w-2 h-full bg-black rounded-full relative shadow-inner cursor-pointer">
+                            <div class="fader-handle-v absolute -left-4 w-10 h-6 bg-gradient-to-b from-slate-300 to-slate-500 rounded shadow-lg border-b-2 border-slate-800 cursor-ns-resize hover:brightness-110 active:scale-95 transition-[filter,transform]" style="bottom: 30%;"></div>
+                        </div>
+                    </div>
+                    <!-- Crossfader -->
+                    <div class="fader-track-h w-full h-3 bg-black rounded-full relative mt-4 shadow-inner cursor-pointer">
+                        <div class="fader-handle-h absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-12 h-8 bg-gradient-to-b from-orange-400 to-orange-600 rounded flex items-center justify-center shadow-[0_0_15px_#ff7b00] cursor-ew-resize hover:brightness-110 active:scale-95 transition-[filter,transform]" style="left: 50%;">
+                            <div class="w-1 h-4 bg-orange-200 rounded-full opacity-50 pointer-events-none"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Deck B -->
+                <div class="cyber-card p-4 sm:p-8 rounded-full aspect-square flex items-center justify-center border-cyan-500/50 shadow-[0_0_30px_rgba(0,243,255,0.15)] group">
+                    <div class="w-full h-full rounded-full border-[12px] border-slate-900 flex items-center justify-center animate-[spin_3.8s_linear_infinite]" style="background: repeating-radial-gradient(#1e293b, #1e293b 10px, #0f172a 10px, #0f172a 20px);">
+                        <div class="w-1/3 h-1/3 bg-cyan-500/20 rounded-full border border-cyan-500/50 flex items-center justify-center shadow-[0_0_20px_#00f3ff] group-hover:bg-cyan-500/40 transition-colors">
+                            <i data-lucide="disc-3" class="text-cyan-400 w-12 h-12 group-hover:animate-pulse"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: SOUND DESIGNER -->
+        <div id="designer" class="page">
+            <h2 class="font-orbitron text-4xl font-black mb-10 glow-pink text-center text-pink-400">MODULAR SYNTHESIS</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 select-none">
+                <!-- Oscillator 1 -->
+                <div class="cyber-card p-6 rounded-2xl border-pink-500/30 group">
+                    <div class="flex justify-between items-center border-b border-pink-500/30 pb-3 mb-6">
+                        <h3 class="font-orbitron text-lg font-bold text-pink-400">OSC 1 [WAVETABLE]</h3>
+                        <div class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></div>
+                    </div>
+                    <div class="h-24 bg-black/60 rounded-xl mb-6 flex items-center justify-center overflow-hidden border border-slate-800 shadow-inner relative">
+                        <!-- Sliding Sine Wave on hover -->
+                        <svg class="absolute left-0 w-[200%] h-16 text-pink-500 wave-slide-anim transition-colors group-hover:drop-shadow-[0_0_8px_#ff007b]" viewBox="0 0 200 20" preserveAspectRatio="none">
+                            <path d="M0,10 Q12.5,0 25,10 T50,10 T75,10 T100,10 T125,10 T150,10 T175,10 T200,10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                        </svg>
+                    </div>
+                    <div class="flex justify-around">
+                        <div class="flex flex-col items-center"><div class="knob" data-rotation="0"></div><span class="text-[10px] mt-3 font-orbitron text-slate-400">SHAPE</span></div>
+                        <div class="flex flex-col items-center"><div class="knob" data-rotation="45"></div><span class="text-[10px] mt-3 font-orbitron text-slate-400">DETUNE</span></div>
+                        <div class="flex flex-col items-center"><div class="knob" data-rotation="-60"></div><span class="text-[10px] mt-3 font-orbitron text-slate-400">FM AMT</span></div>
+                    </div>
+                </div>
+                <!-- Envelope -->
+                <div class="cyber-card p-6 rounded-2xl border-purple-500/30">
+                    <div class="flex justify-between items-center border-b border-purple-500/30 pb-3 mb-6">
+                        <h3 class="font-orbitron text-lg font-bold text-purple-400">ENVELOPE ADSR</h3>
+                        <div class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_10px_#9d00ff]"></div>
+                    </div>
+                    <div class="flex h-32 items-end justify-between px-4 gap-4 bg-black/40 p-4 rounded-xl border border-slate-800">
+                        <div class="w-4 bg-purple-500/80 rounded-t-sm shadow-[0_0_15px_#9d00ff]" style="height: 20%;"></div>
+                        <div class="w-4 bg-purple-500/60 rounded-t-sm" style="height: 100%;"></div>
+                        <div class="w-4 bg-purple-500/40 rounded-t-sm" style="height: 60%;"></div>
+                        <div class="w-4 bg-purple-500/20 rounded-t-sm" style="height: 40%;"></div>
+                    </div>
+                    <div class="flex justify-between px-4 mt-3">
+                        <span class="text-[10px] font-orbitron text-slate-500">ATT</span>
+                        <span class="text-[10px] font-orbitron text-slate-500">DEC</span>
+                        <span class="text-[10px] font-orbitron text-slate-500">SUS</span>
+                        <span class="text-[10px] font-orbitron text-slate-500">REL</span>
+                    </div>
+                </div>
+                <!-- Filter -->
+                <div class="cyber-card p-6 rounded-2xl border-cyan-500/30 lg:col-span-1 md:col-span-2 group">
+                    <div class="flex justify-between items-center border-b border-cyan-500/30 pb-3 mb-6">
+                        <h3 class="font-orbitron text-lg font-bold text-cyan-400">FILTER [LOWPASS]</h3>
+                        <i data-lucide="activity" class="text-cyan-500 w-4 h-4 transition-all duration-300 group-hover:scale-125 group-hover:animate-pulse"></i>
+                    </div>
+                    <div class="flex justify-center items-center gap-12 h-32">
+                        <div class="relative w-24 h-24 rounded-full border-4 border-slate-800 flex items-center justify-center bg-black/40">
+                            <div class="absolute w-full h-full rounded-full border-4 border-cyan-500 border-t-transparent border-r-transparent transform -rotate-45 pointer-events-none"></div>
+                            <div class="knob w-12 h-12 shadow-[0_0_20px_#00f3ff]" data-rotation="-20"></div>
+                        </div>
+                        <div class="flex flex-col gap-6 w-full max-w-[200px]">
+                            <div class="flex items-center gap-3"><span class="text-xs font-orbitron text-slate-400 w-12">CUTOFF</span> <div class="w-full h-2 bg-black rounded"><div class="w-[70%] h-full bg-cyan-400 rounded shadow-[0_0_10px_#00f3ff]"></div></div></div>
+                            <div class="flex items-center gap-3"><span class="text-xs font-orbitron text-slate-400 w-12">RES</span> <div class="w-full h-2 bg-black rounded"><div class="w-[30%] h-full bg-cyan-600 rounded"></div></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: CPU LOAD -->
+        <div id="cpu" class="page">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="font-orbitron text-4xl font-black mb-2 glow-cyan text-center">SYSTEM DIAGNOSTICS</h2>
+                <p class="text-center text-slate-400 font-orbitron tracking-widest text-sm mb-10">REAL-TIME HARDWARE MONITORING</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Cards... -->
+                    <div class="cyber-card p-8 rounded-3xl text-center border-cyan-500/20 group">
+                        <div class="relative w-32 h-32 mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
+                            <div class="absolute inset-0 rounded-full border-[10px] border-cyan-400 border-t-transparent border-r-transparent animate-spin" style="animation-duration: 3s;"></div>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <span class="font-orbitron font-black text-3xl text-cyan-400 glow-cyan group-hover:scale-110 transition-transform">68<span class="text-lg">%</span></span>
+                            </div>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-slate-200">NEURAL CORE</h3>
+                        <p class="text-xs text-slate-500 mt-1">Audio Processing</p>
+                    </div>
+                    <div class="cyber-card p-8 rounded-3xl text-center border-pink-500/20 group">
+                        <div class="relative w-32 h-32 mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
+                            <div class="absolute inset-0 rounded-full border-[10px] border-pink-500 border-b-transparent animate-spin" style="animation-duration: 5s; animation-direction: reverse;"></div>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <span class="font-orbitron font-black text-3xl text-pink-400 glow-pink group-hover:scale-110 transition-transform">42<span class="text-lg">%</span></span>
+                            </div>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-slate-200">RAM BUFFER</h3>
+                        <p class="text-xs text-slate-500 mt-1">Sample Libraries</p>
+                    </div>
+                    <div class="cyber-card p-8 rounded-3xl text-center border-orange-500/20 group">
+                        <div class="relative w-32 h-32 mx-auto mb-6">
+                            <div class="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
+                            <div class="absolute inset-0 rounded-full border-[10px] border-orange-500 border-l-transparent animate-spin" style="animation-duration: 2s;"></div>
+                            <div class="absolute inset-0 flex items-center justify-center flex-col">
+                                <span class="font-orbitron font-black text-3xl text-orange-400 group-hover:scale-110 transition-transform">14<span class="text-lg">%</span></span>
+                            </div>
+                        </div>
+                        <h3 class="font-orbitron font-bold text-slate-200">DISK I/O</h3>
+                        <p class="text-xs text-slate-500 mt-1">Streaming Cache</p>
+                    </div>
+                </div>
+
+                <div class="cyber-card p-6 rounded-2xl">
+                    <h3 class="font-orbitron font-bold text-cyan-400 mb-4 border-b border-slate-800 pb-2">ACTIVE PLUGIN THREADS</h3>
+                    <div class="space-y-4">
+                        <div class="group">
+                            <div class="flex justify-between text-xs font-orbitron text-slate-400 mb-1"><span>REVERB PRO</span> <span class="group-hover:text-cyan-400 transition-colors">22%</span></div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="w-[22%] h-full bg-cyan-400 rounded-full shadow-[0_0_8px_#00f3ff] group-hover:bg-cyan-300 transition-colors"></div></div>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between text-xs font-orbitron text-slate-400 mb-1"><span>WAVETABLE SYNTH 1</span> <span class="group-hover:text-pink-400 transition-colors">45%</span></div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="w-[45%] h-full bg-pink-500 rounded-full shadow-[0_0_8px_#ff007b] group-hover:bg-pink-400 transition-colors"></div></div>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between text-xs font-orbitron text-slate-400 mb-1"><span>MASTER LIMITER</span> <span class="group-hover:text-orange-400 transition-colors">8%</span></div>
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden"><div class="w-[8%] h-full bg-orange-500 rounded-full group-hover:bg-orange-400 transition-colors"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: COMMUNITY -->
+        <div id="community" class="page">
+            <div class="flex justify-between items-center mb-10">
+                <h2 class="font-orbitron text-4xl font-black glow-purple text-purple-400">GLOBAL NETWORK</h2>
+                <button class="btn-pop px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/50 rounded font-orbitron text-sm">UPLOAD TRACK</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="cyber-card p-6 rounded-2xl border-l-4 border-cyan-500 group">
+                    <div class="flex items-center gap-4 mb-4">
+                        <img src="https://ui-avatars.com/api/?name=Ne%20On&background=00f3ff&color=000" class="w-12 h-12 rounded-full border-2 border-cyan-400" alt="User">
+                        <div>
+                            <h4 class="font-bold text-slate-200">NeonSynth88</h4>
+                            <p class="text-xs text-slate-500 font-orbitron">Cyberpunk Chase Theme</p>
+                        </div>
+                        <div class="ml-auto text-xs text-slate-600">2h ago</div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded-lg flex items-center gap-4 mb-4">
+                        <button class="btn-pop w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center text-black shadow-[0_0_10px_#00f3ff] transition-transform group-hover:scale-110"><i data-lucide="play" class="w-4 h-4 fill-black"></i></button>
+                        <div class="flex-grow h-8 bg-slate-800 rounded relative overflow-hidden">
+                            <div class="absolute left-0 top-0 h-full w-1/3 bg-cyan-500/30"></div>
+                            <svg class="absolute inset-0 w-full h-full text-cyan-400 opacity-60" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M0,50 Q10,20 20,50 T40,50 T60,50 T80,50 T100,50" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 text-sm text-slate-400 font-orbitron">
+                        <span class="flex items-center gap-2 hover:text-pink-400 cursor-pointer transition"><i data-lucide="heart" class="w-4 h-4"></i> 1.2k</span>
+                        <span class="flex items-center gap-2 hover:text-cyan-400 cursor-pointer transition"><i data-lucide="message-square" class="w-4 h-4"></i> 342</span>
+                        <span class="flex items-center gap-2 hover:text-white cursor-pointer transition"><i data-lucide="share-2" class="w-4 h-4"></i> Share</span>
+                    </div>
+                </div>
+                
+                <div class="cyber-card p-6 rounded-2xl border-l-4 border-pink-500 group">
+                    <div class="flex items-center gap-4 mb-4">
+                        <img src="https://ui-avatars.com/api/?name=Bass+Drop&background=ff007b&color=fff" class="w-12 h-12 rounded-full border-2 border-pink-400" alt="User">
+                        <div>
+                            <h4 class="font-bold text-slate-200">DropTheBass</h4>
+                            <p class="text-xs text-slate-500 font-orbitron">Heavy Dubstep WIP</p>
+                        </div>
+                        <div class="ml-auto text-xs text-slate-600">5h ago</div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded-lg flex items-center gap-4 mb-4">
+                        <button class="btn-pop w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center text-white shadow-[0_0_10px_#ff007b] transition-transform group-hover:scale-110"><i data-lucide="play" class="w-4 h-4 fill-white"></i></button>
+                        <div class="flex-grow h-8 bg-slate-800 rounded relative overflow-hidden">
+                            <div class="absolute left-0 top-0 h-full w-[10%] bg-pink-500/30"></div>
+                            <svg class="absolute inset-0 w-full h-full text-pink-400 opacity-60" preserveAspectRatio="none" viewBox="0 0 100 100"><path d="M0,50 L10,10 L20,90 L30,40 L40,80 L50,20 L60,60 L70,30 L80,70 L90,10 L100,50" fill="none" stroke="currentColor" stroke-width="2"/></svg>
+                        </div>
+                    </div>
+                    <div class="flex gap-6 text-sm text-slate-400 font-orbitron">
+                        <span class="flex items-center gap-2 hover:text-pink-400 cursor-pointer transition"><i data-lucide="heart" class="w-4 h-4"></i> 890</span>
+                        <span class="flex items-center gap-2 hover:text-cyan-400 cursor-pointer transition"><i data-lucide="message-square" class="w-4 h-4"></i> 112</span>
+                        <span class="flex items-center gap-2 hover:text-white cursor-pointer transition"><i data-lucide="share-2" class="w-4 h-4"></i> Share</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: ACADEMY / TUTORIALS -->
+        <div id="tutorials" class="page">
+            <h2 class="font-orbitron text-4xl font-black mb-2 glow-cyan text-center">NEURAL ACADEMY</h2>
+            <p class="text-center text-slate-400 font-orbitron tracking-widest text-sm mb-12">MASTER THE WORKFLOW</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="cyber-card rounded-2xl overflow-hidden group cursor-pointer border-slate-700 hover:border-cyan-500 transition-colors">
+                    <div class="h-40 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]"></div>
+                        <div class="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(0,243,255,0.4)]">
+                            <i data-lucide="play" class="text-cyan-400 w-6 h-6 ml-1 fill-cyan-400 transition-all group-hover:animate-pulse"></i>
+                        </div>
+                        <div class="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs font-orbitron">12:45</div>
+                    </div>
+                    <div class="p-5">
+                        <div class="text-[10px] text-cyan-400 font-orbitron font-bold mb-2">BEGINNER</div>
+                        <h4 class="font-bold text-slate-200 mb-2 group-hover:text-cyan-400 transition-colors">Getting Started with Rhythm Dawn</h4>
+                        <p class="text-xs text-slate-400 line-clamp-2">Learn the basics of the sequencer, loading tracks, and navigating the main interface.</p>
+                    </div>
+                </div>
+                <div class="cyber-card rounded-2xl overflow-hidden group cursor-pointer border-slate-700 hover:border-pink-500 transition-colors">
+                    <div class="h-40 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]"></div>
+                        <div class="w-16 h-16 rounded-full bg-pink-500/20 border-2 border-pink-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,0,123,0.4)]">
+                            <i data-lucide="play" class="text-pink-400 w-6 h-6 ml-1 fill-pink-400 transition-all group-hover:animate-pulse"></i>
+                        </div>
+                        <div class="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs font-orbitron">24:10</div>
+                    </div>
+                    <div class="p-5">
+                        <div class="text-[10px] text-pink-400 font-orbitron font-bold mb-2">INTERMEDIATE</div>
+                        <h4 class="font-bold text-slate-200 mb-2 group-hover:text-pink-400 transition-colors">Advanced Modular Routing</h4>
+                        <p class="text-xs text-slate-400 line-clamp-2">Connect LFOs to filter cutoffs and design complex, evolving soundscapes.</p>
+                    </div>
+                </div>
+                <div class="cyber-card rounded-2xl overflow-hidden group cursor-pointer border-slate-700 hover:border-orange-500 transition-colors">
+                    <div class="h-40 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                        <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IiNmZmYiLz48L3N2Zz4=')]"></div>
+                        <div class="w-16 h-16 rounded-full bg-orange-500/20 border-2 border-orange-400 flex items-center justify-center group-hover:scale-110 transition-transform shadow-[0_0_20px_rgba(255,123,0,0.4)]">
+                            <i data-lucide="play" class="text-orange-400 w-6 h-6 ml-1 fill-orange-400 transition-all group-hover:animate-pulse"></i>
+                        </div>
+                        <div class="absolute bottom-2 right-2 bg-black/80 px-2 py-1 rounded text-xs font-orbitron">45:00</div>
+                    </div>
+                    <div class="p-5">
+                        <div class="text-[10px] text-orange-400 font-orbitron font-bold mb-2">MASTERCLASS</div>
+                        <h4 class="font-bold text-slate-200 mb-2 group-hover:text-orange-400 transition-colors">Live Performance Mixing</h4>
+                        <p class="text-xs text-slate-400 line-clamp-2">Prepare your tracks for the stage using the Dual Deck Beat Mixer and hotcues.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE: CONTACT HQ -->
+        <div id="contact" class="page">
+            <div class="max-w-3xl mx-auto">
+                <h2 class="font-orbitron text-4xl font-black mb-2 glow-cyan text-center">SECURE COMMLINK</h2>
+                <p class="text-center text-slate-400 font-orbitron tracking-widest text-sm mb-12">ESTABLISH CONNECTION WITH SUPPORT HQ</p>
+                
+                <div class="cyber-card p-8 rounded-3xl border-t-4 border-cyan-500">
+                    <form class="space-y-6" onsubmit="event.preventDefault(); alert('Transmission Initialized. Support will contact you shortly.');">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="text-xs font-orbitron text-cyan-400 tracking-widest">OPERATOR ALIAS (NAME)</label>
+                                <input type="text" required class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all" placeholder="Enter your handle">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-xs font-orbitron text-cyan-400 tracking-widest">NETWORK ADDRESS (EMAIL)</label>
+                                <input type="email" required class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all" placeholder="Enter your email">
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-orbitron text-cyan-400 tracking-widest">ENCRYPTION TYPE (SUBJECT)</label>
+                            <select class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all appearance-none">
+                                <option>Bug Report / Glitch Matrix</option>
+                                <option>Feature Request / Upgrade</option>
+                                <option>Account & Billing / Credits</option>
+                                <option>Collaboration Inquiry / Collab</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-orbitron text-cyan-400 tracking-widest">TRANSMISSION CONTENT</label>
+                            <textarea rows="5" required class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(0,243,255,0.3)] transition-all resize-none" placeholder="Detail your inquiry or issue here..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full btn-pop py-4 bg-cyan-600 hover:bg-cyan-500 text-black font-orbitron font-bold tracking-widest rounded-lg shadow-[0_0_15px_#00f3ff] transition-all">
+                            INITIALIZE TRANSMISSION
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Initialize Icons
+        lucide.createIcons();
+
+        // Simple SPA Router
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            // Scroll to top when changing pages
+            document.querySelector('main').scrollTop = 0;
+        }
+
+        // 3D Card Tilt Effect
+        document.querySelectorAll('.tilt-wrapper').forEach(wrapper => {
+            const elements = wrapper.querySelectorAll('.tilt-element');
+            
+            wrapper.addEventListener('mousemove', (e) => {
+                const rect = wrapper.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = ((y - centerY) / centerY) * -5;
+                const rotateY = ((x - centerX) / centerX) * 5;
+
+                elements.forEach(el => {
+                    el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                });
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                elements.forEach(el => {
+                    el.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+                });
+            });
+        });
+
+        // --- Sequencer Play/Stop Logic ---
+        const btnPlay = document.getElementById('btn-play');
+        const btnStop = document.getElementById('btn-stop');
+        const seqWorkspace = document.getElementById('sequencer-workspace');
+
+        btnPlay.addEventListener('click', () => {
+            seqWorkspace.classList.add('is-playing');
+            btnPlay.classList.add('shadow-[0_0_20px_#00f3ff]');
+            btnPlay.classList.replace('bg-cyan-600', 'bg-cyan-400');
+        });
+
+        btnStop.addEventListener('click', () => {
+            seqWorkspace.classList.remove('is-playing');
+            btnPlay.classList.remove('shadow-[0_0_20px_#00f3ff]');
+            btnPlay.classList.replace('bg-cyan-400', 'bg-cyan-600');
+            
+            // Immediately force reset of the CSS animations to the beginning
+            const animElements = seqWorkspace.querySelectorAll('.playhead-anim, .wave-reveal-anim');
+            animElements.forEach(el => {
+                el.style.animation = 'none';
+                el.offsetHeight; // Force DOM reflow
+                el.style.animation = null; 
+            });
+        });
+
+        // --- Drag Interactions Logic ---
+        
+        // 1. Rotary Knobs
+        document.querySelectorAll('.knob').forEach(knob => {
+            let isDragging = false;
+            let startY = 0;
+            let currentRotation = knob.dataset.rotation ? parseFloat(knob.dataset.rotation) : 0;
+            knob.style.transform = `rotate(${currentRotation}deg)`;
+
+            const startDrag = (e) => {
+                isDragging = true;
+                startY = e.touches ? e.touches[0].clientY : e.clientY;
+                document.body.classList.add('dragging');
+                e.preventDefault();
+            };
+
+            const doDrag = (e) => {
+                if (!isDragging) return;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const deltaY = startY - clientY; 
+                currentRotation += deltaY * 2.5; // Drag sensitivity
+                
+                // Clamp rotation
+                currentRotation = Math.max(-150, Math.min(150, currentRotation));
+                knob.style.transform = `rotate(${currentRotation}deg)`;
+                startY = clientY;
+            };
+
+            const stopDrag = () => {
+                isDragging = false;
+                document.body.classList.remove('dragging');
+            };
+
+            knob.addEventListener('mousedown', startDrag);
+            knob.addEventListener('touchstart', startDrag, {passive: false});
+            window.addEventListener('mousemove', doDrag);
+            window.addEventListener('touchmove', doDrag, {passive: false});
+            window.addEventListener('mouseup', stopDrag);
+            window.addEventListener('touchend', stopDrag);
+        });
+
+        // 2. Vertical Volume Faders
+        document.querySelectorAll('.fader-track-v').forEach(track => {
+            const handle = track.querySelector('.fader-handle-v');
+            let isDragging = false;
+
+            const startDrag = (e) => {
+                isDragging = true;
+                document.body.classList.add('dragging');
+                updateFader(e);
+                e.preventDefault();
+            };
+
+            const updateFader = (e) => {
+                if (!isDragging) return;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const rect = track.getBoundingClientRect();
+                
+                let y = clientY - rect.top;
+                let percent = 100 - (y / rect.height) * 100;
+                
+                percent = Math.max(0, Math.min(100, percent));
+                handle.style.bottom = `${percent}%`;
+            };
+
+            const stopDrag = () => {
+                isDragging = false;
+                document.body.classList.remove('dragging');
+            };
+
+            track.addEventListener('mousedown', startDrag);
+            track.addEventListener('touchstart', startDrag, {passive: false});
+            window.addEventListener('mousemove', updateFader);
+            window.addEventListener('touchmove', updateFader, {passive: false});
+            window.addEventListener('mouseup', stopDrag);
+            window.addEventListener('touchend', stopDrag);
+        });
+
+        // 3. Horizontal Crossfader
+        document.querySelectorAll('.fader-track-h').forEach(track => {
+            const handle = track.querySelector('.fader-handle-h');
+            let isDragging = false;
+
+            const startDrag = (e) => {
+                isDragging = true;
+                document.body.classList.add('dragging-h');
+                updateFader(e);
+                e.preventDefault();
+            };
+
+            const updateFader = (e) => {
+                if (!isDragging) return;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const rect = track.getBoundingClientRect();
+                
+                let x = clientX - rect.left;
+                let percent = (x / rect.width) * 100;
+                
+                percent = Math.max(0, Math.min(100, percent));
+                handle.style.left = `${percent}%`;
+            };
+
+            const stopDrag = () => {
+                isDragging = false;
+                document.body.classList.remove('dragging-h');
+            };
+
+            track.addEventListener('mousedown', startDrag);
+            track.addEventListener('touchstart', startDrag, {passive: false});
+            window.addEventListener('mousemove', updateFader);
+            window.addEventListener('touchmove', updateFader, {passive: false});
+            window.addEventListener('mouseup', stopDrag);
+            window.addEventListener('touchend', stopDrag);
+        });
+    </script>
+</body>
+</html>
