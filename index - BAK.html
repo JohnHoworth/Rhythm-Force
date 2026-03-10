@@ -17,7 +17,7 @@
 
         body {
             background-color: #050505;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 50% 50%, #111 0%, #000 100%),
                 linear-gradient(0deg, transparent 24%, rgba(0, 243, 255, 0.03) 25%, rgba(0, 243, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.03) 75%, rgba(0, 243, 255, 0.03) 76%, transparent 77%, transparent),
                 linear-gradient(90deg, transparent 24%, rgba(0, 243, 255, 0.03) 25%, rgba(0, 243, 255, 0.03) 26%, transparent 27%, transparent 74%, rgba(0, 243, 255, 0.03) 75%, rgba(0, 243, 255, 0.03) 76%, transparent 77%, transparent);
@@ -126,15 +126,39 @@
             border: 2px solid #0f172a; position: relative;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.1);
             cursor: ns-resize; transform: rotate(0deg);
+            touch-action: none;
         }
         .knob::after {
             content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
             width: 4px; height: 12px; background: var(--neon-cyan); border-radius: 2px;
             box-shadow: 0 0 5px var(--neon-cyan);
         }
-        
+
         .dragging { cursor: ns-resize !important; }
         .dragging-h { cursor: ew-resize !important; }
+
+        .fader-track-v, .fader-track-h { touch-action: none; }
+
+        .filter-highlight-ring {
+            --ring-angle: 205deg;
+            background: conic-gradient(from -135deg,
+                rgba(0, 243, 255, 0.95) 0deg,
+                rgba(0, 243, 255, 0.95) var(--ring-angle),
+                rgba(15, 23, 42, 0.1) var(--ring-angle),
+                rgba(15, 23, 42, 0.1) 360deg);
+            -webkit-mask: radial-gradient(circle, transparent 62%, #000 63%);
+            mask: radial-gradient(circle, transparent 62%, #000 63%);
+        }
+
+        @media (max-width: 767px) {
+            .responsive-title { font-size: 1.75rem; }
+            main { padding: 1rem; }
+        }
+
+        @media (max-height: 500px) and (orientation: landscape) {
+            nav { position: relative; }
+            main { padding-top: 1rem; }
+        }
 
         /* SPA Pages */
         .page { display: none; animation: fadeIn 0.4s ease-out forwards; }
@@ -188,7 +212,7 @@
                 <span class="hidden lg:block font-orbitron font-semibold text-sm tracking-widest">CONTACT HQ</span>
             </button>
         </div>
-        
+
         <div class="mt-auto hidden lg:block px-4 w-full">
             <div class="bg-black/40 border border-slate-700 rounded p-3 flex items-center gap-3">
                 <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_#00f3ff] animate-pulse"></div>
@@ -199,7 +223,7 @@
 
     <!-- Main Content Area -->
     <main class="flex-grow p-4 md:p-8 lg:p-12 overflow-y-auto">
-        
+
         <!-- PAGE: DASHBOARD -->
         <div id="dashboard" class="page active">
             <header class="mb-10 flex justify-between items-end border-b border-slate-800 pb-4">
@@ -223,9 +247,9 @@
                         </div>
                         <span class="bg-cyan-500/20 text-cyan-400 px-3 py-1 rounded text-xs font-orbitron font-bold border border-cyan-500/30">ACTIVE</span>
                     </div>
-                    
+
                     <p class="text-slate-400 text-sm mb-6">Multi-track quantum sequencer. Load your stems and manipulate time.</p>
-                    
+
                     <div class="bg-black/40 rounded-xl p-4 flex-grow border border-slate-800 is-playing">
                         <div class="relative w-full h-full min-h-[100px] overflow-hidden">
                             <div class="absolute top-0 bottom-0 w-[2px] bg-cyan-300 shadow-[0_0_15px_#00f3ff] z-20 playhead-anim"></div>
@@ -317,7 +341,7 @@
                     </div>
                     <div class="font-orbitron text-2xl text-cyan-400 tracking-widest bg-black/50 px-4 py-1 rounded border border-cyan-500/30">128.00 BPM</div>
                 </div>
-                
+
                 <div id="sequencer-workspace" class="flex-grow bg-black/60 rounded-lg border border-slate-800 p-6 space-y-6 flex flex-col overflow-x-auto">
                     <div class="flex w-full h-full gap-6 min-w-[600px]">
                         <div class="w-24 flex-shrink-0 flex flex-col gap-6 relative z-10 pt-1">
@@ -330,25 +354,25 @@
                         <div class="flex-grow relative flex flex-col gap-6 border-l border-slate-800/80 pl-1 overflow-hidden">
                             <!-- Playhead line -->
                             <div class="absolute top-0 bottom-0 w-[2px] bg-cyan-300 shadow-[0_0_20px_#00f3ff] z-20 playhead-anim"></div>
-                            
+
                             <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-cyan);">
                                 <div class="absolute inset-0 wave-reveal-anim">
                                     <div class="audio-wave w-[100%] text-cyan-400"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-pink);">
                                 <div class="absolute inset-0 wave-reveal-anim">
                                     <div class="audio-wave w-[60%] opacity-60 ml-[20%] text-pink-500"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-orange);">
                                 <div class="absolute inset-0 wave-reveal-anim">
                                     <div class="audio-wave w-[90%] text-orange-400"></div>
                                 </div>
                             </div>
-                            
+
                             <div class="relative h-12 border-b border-slate-800/80 w-full" style="border-left: 2px solid var(--neon-purple);">
                                 <div class="absolute inset-0 wave-reveal-anim">
                                     <div class="audio-wave w-[45%] opacity-80 ml-[40%] text-purple-500"></div>
@@ -362,7 +386,7 @@
 
         <!-- PAGE: BEAT MIXER -->
         <div id="mixer" class="page">
-            <h2 class="font-orbitron text-4xl font-black mb-10 glow-orange text-center text-orange-400">DUAL DECK MIXER</h2>
+            <h2 class="responsive-title font-orbitron text-4xl font-black mb-10 glow-orange text-center text-orange-400">DUAL DECK MIXER</h2>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
                 <!-- Deck A -->
                 <div class="cyber-card p-4 sm:p-8 rounded-full aspect-square flex items-center justify-center border-orange-500/50 shadow-[0_0_30px_rgba(255,123,0,0.15)] group">
@@ -372,7 +396,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Mixer Center -->
                 <div class="cyber-card p-8 rounded-3xl h-full flex flex-col justify-between border-slate-700 bg-slate-900/60 select-none">
                     <div class="flex justify-between px-4">
@@ -397,7 +421,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Deck B -->
                 <div class="cyber-card p-4 sm:p-8 rounded-full aspect-square flex items-center justify-center border-cyan-500/50 shadow-[0_0_30px_rgba(0,243,255,0.15)] group">
                     <div class="w-full h-full rounded-full border-[12px] border-slate-900 flex items-center justify-center animate-[spin_3.8s_linear_infinite]" style="background: repeating-radial-gradient(#1e293b, #1e293b 10px, #0f172a 10px, #0f172a 20px);">
@@ -411,7 +435,7 @@
 
         <!-- PAGE: SOUND DESIGNER -->
         <div id="designer" class="page">
-            <h2 class="font-orbitron text-4xl font-black mb-10 glow-pink text-center text-pink-400">MODULAR SYNTHESIS</h2>
+            <h2 class="responsive-title font-orbitron text-4xl font-black mb-10 glow-pink text-center text-pink-400">MODULAR SYNTHESIS</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 select-none">
                 <!-- Oscillator 1 -->
                 <div class="cyber-card p-6 rounded-2xl border-pink-500/30 group">
@@ -456,12 +480,12 @@
                         <h3 class="font-orbitron text-lg font-bold text-cyan-400">FILTER [LOWPASS]</h3>
                         <i data-lucide="activity" class="text-cyan-500 w-4 h-4 transition-all duration-300 group-hover:scale-125 group-hover:animate-pulse"></i>
                     </div>
-                    <div class="flex justify-center items-center gap-12 h-32">
-                        <div class="relative w-24 h-24 rounded-full border-4 border-slate-800 flex items-center justify-center bg-black/40">
-                            <div class="absolute w-full h-full rounded-full border-4 border-cyan-500 border-t-transparent border-r-transparent transform -rotate-45 pointer-events-none"></div>
-                            <div class="knob w-12 h-12 shadow-[0_0_20px_#00f3ff]" data-rotation="-20"></div>
+                    <div class="flex flex-col sm:flex-row justify-center items-center gap-6 sm:gap-12 h-auto sm:h-32">
+                        <div class="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-slate-800 flex items-center justify-center bg-black/40">
+                            <div class="filter-highlight-ring absolute inset-0 rounded-full pointer-events-none" data-knob-ring="filter-cutoff"></div>
+                            <div class="knob w-11 h-11 sm:w-12 sm:h-12 shadow-[0_0_20px_#00f3ff]" data-rotation="-20" data-ring="filter-cutoff"></div>
                         </div>
-                        <div class="flex flex-col gap-6 w-full max-w-[200px]">
+                        <div class="flex flex-col gap-6 w-full max-w-[260px]">
                             <div class="flex items-center gap-3"><span class="text-xs font-orbitron text-slate-400 w-12">CUTOFF</span> <div class="w-full h-2 bg-black rounded"><div class="w-[70%] h-full bg-cyan-400 rounded shadow-[0_0_10px_#00f3ff]"></div></div></div>
                             <div class="flex items-center gap-3"><span class="text-xs font-orbitron text-slate-400 w-12">RES</span> <div class="w-full h-2 bg-black rounded"><div class="w-[30%] h-full bg-cyan-600 rounded"></div></div></div>
                         </div>
@@ -538,7 +562,7 @@
                 <h2 class="font-orbitron text-4xl font-black glow-purple text-purple-400">GLOBAL NETWORK</h2>
                 <button class="btn-pop px-4 py-2 bg-purple-600/20 text-purple-400 border border-purple-500/50 rounded font-orbitron text-sm">UPLOAD TRACK</button>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="cyber-card p-6 rounded-2xl border-l-4 border-cyan-500 group">
                     <div class="flex items-center gap-4 mb-4">
@@ -562,7 +586,7 @@
                         <span class="flex items-center gap-2 hover:text-white cursor-pointer transition"><i data-lucide="share-2" class="w-4 h-4"></i> Share</span>
                     </div>
                 </div>
-                
+
                 <div class="cyber-card p-6 rounded-2xl border-l-4 border-pink-500 group">
                     <div class="flex items-center gap-4 mb-4">
                         <img src="https://ui-avatars.com/api/?name=Bass+Drop&background=ff007b&color=fff" class="w-12 h-12 rounded-full border-2 border-pink-400" alt="User">
@@ -592,7 +616,7 @@
         <div id="tutorials" class="page">
             <h2 class="font-orbitron text-4xl font-black mb-2 glow-cyan text-center">NEURAL ACADEMY</h2>
             <p class="text-center text-slate-400 font-orbitron tracking-widest text-sm mb-12">MASTER THE WORKFLOW</p>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="cyber-card rounded-2xl overflow-hidden group cursor-pointer border-slate-700 hover:border-cyan-500 transition-colors">
                     <div class="h-40 bg-slate-900 relative flex items-center justify-center overflow-hidden">
@@ -644,7 +668,7 @@
             <div class="max-w-3xl mx-auto">
                 <h2 class="font-orbitron text-4xl font-black mb-2 glow-cyan text-center">SECURE COMMLINK</h2>
                 <p class="text-center text-slate-400 font-orbitron tracking-widest text-sm mb-12">ESTABLISH CONNECTION WITH SUPPORT HQ</p>
-                
+
                 <div class="cyber-card p-8 rounded-3xl border-t-4 border-cyan-500">
                     <form class="space-y-6" onsubmit="event.preventDefault(); alert('Transmission Initialized. Support will contact you shortly.');">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -697,15 +721,15 @@
         // 3D Card Tilt Effect
         document.querySelectorAll('.tilt-wrapper').forEach(wrapper => {
             const elements = wrapper.querySelectorAll('.tilt-element');
-            
+
             wrapper.addEventListener('mousemove', (e) => {
                 const rect = wrapper.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
-                
+
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                
+
                 const rotateX = ((y - centerY) / centerY) * -5;
                 const rotateY = ((x - centerX) / centerX) * 5;
 
@@ -736,24 +760,38 @@
             seqWorkspace.classList.remove('is-playing');
             btnPlay.classList.remove('shadow-[0_0_20px_#00f3ff]');
             btnPlay.classList.replace('bg-cyan-400', 'bg-cyan-600');
-            
+
             // Immediately force reset of the CSS animations to the beginning
             const animElements = seqWorkspace.querySelectorAll('.playhead-anim, .wave-reveal-anim');
             animElements.forEach(el => {
                 el.style.animation = 'none';
                 el.offsetHeight; // Force DOM reflow
-                el.style.animation = null; 
+                el.style.animation = null;
             });
         });
 
         // --- Drag Interactions Logic ---
-        
+
         // 1. Rotary Knobs
+        const applyKnobRotation = (knob, rotation) => {
+            knob.style.transform = `rotate(${rotation}deg)`;
+            knob.dataset.rotation = rotation;
+
+            const ringKey = knob.dataset.ring;
+            if (ringKey) {
+                const ring = document.querySelector(`[data-knob-ring="${ringKey}"]`);
+                if (ring) {
+                    const normalized = ((rotation + 150) / 300) * 270;
+                    ring.style.setProperty('--ring-angle', `${Math.max(0, Math.min(270, normalized))}deg`);
+                }
+            }
+        };
+
         document.querySelectorAll('.knob').forEach(knob => {
             let isDragging = false;
             let startY = 0;
             let currentRotation = knob.dataset.rotation ? parseFloat(knob.dataset.rotation) : 0;
-            knob.style.transform = `rotate(${currentRotation}deg)`;
+            applyKnobRotation(knob, currentRotation);
 
             const startDrag = (e) => {
                 isDragging = true;
@@ -764,13 +802,14 @@
 
             const doDrag = (e) => {
                 if (!isDragging) return;
+                if (e.cancelable) e.preventDefault();
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const deltaY = startY - clientY; 
+                const deltaY = startY - clientY;
                 currentRotation += deltaY * 2.5; // Drag sensitivity
-                
+
                 // Clamp rotation
                 currentRotation = Math.max(-150, Math.min(150, currentRotation));
-                knob.style.transform = `rotate(${currentRotation}deg)`;
+                applyKnobRotation(knob, currentRotation);
                 startY = clientY;
             };
 
@@ -801,12 +840,13 @@
 
             const updateFader = (e) => {
                 if (!isDragging) return;
+                if (e.cancelable) e.preventDefault();
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
                 const rect = track.getBoundingClientRect();
-                
+
                 let y = clientY - rect.top;
                 let percent = 100 - (y / rect.height) * 100;
-                
+
                 percent = Math.max(0, Math.min(100, percent));
                 handle.style.bottom = `${percent}%`;
             };
@@ -838,12 +878,13 @@
 
             const updateFader = (e) => {
                 if (!isDragging) return;
+                if (e.cancelable) e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const rect = track.getBoundingClientRect();
-                
+
                 let x = clientX - rect.left;
                 let percent = (x / rect.width) * 100;
-                
+
                 percent = Math.max(0, Math.min(100, percent));
                 handle.style.left = `${percent}%`;
             };
